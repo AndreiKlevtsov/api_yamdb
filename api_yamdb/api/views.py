@@ -1,3 +1,11 @@
+from rest_framework import filters
+from rest_framework.viewsets import ModelViewSet
+from reviews.models import Category, Genre, Title, Review, Comment, Title
+
+from .serializers import (
+  CategorySerializer, GenreSerializer, TitleSerializer, 
+  ReviewSerializer, CommentSerializer, UserSerializer)
+
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import action
@@ -5,12 +13,28 @@ from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from reviews.models import Review, Comment, Title
 from users.models import User
 
-from api.serializers import (
-    ReviewSerializer, CommentSerializer, UserSerializer
-)
+
+class CategoryViewSet(ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
+    
+
+class GenreViewSet(ModelViewSet):
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
+
+
+class TitleViewSet(ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('category__slug', 'genre__slug', 'name', 'year',)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -25,8 +49,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title
-
-    #
+        
     def get_queryset(self):
         return self.get_title().reviews.all()
 
@@ -66,3 +89,4 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def me(self):
         pass
+        
