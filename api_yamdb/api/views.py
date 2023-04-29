@@ -8,10 +8,12 @@ from rest_framework.mixins import (
 )
 from reviews.models import Category, Genre, Title, Review, Comment
 from .serializers import (
-  CategorySerializer, GenreSerializer, TitlePostSerializer, TitleGetSerializer,
-  ReviewSerializer, CommentSerializer, UserSerializer,
-  TokenSerializer, RegisterDataSerializer
+    CategorySerializer, GenreSerializer, TitlePostSerializer,
+    TitleGetSerializer, ReviewSerializer, CommentSerializer, 
+    UserSerializer, TokenSerializer, RegisterDataSerializer
   )
+from .permissions import (IsAdmin, IsAdminOrReadOnly,
+                          IsAdminOrModeratorOrUserOrReadOnly)
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
@@ -32,8 +34,9 @@ class CategoryViewSet(ListModelMixin,
                       viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = (filters.SearchFilter,)
+    permission_classes = (IsAdminOrReadOnly, )
     search_fields = ('name',)
+    filter_backends = (filters.SearchFilter,)
     lookup_field = 'slug'
 
 
@@ -43,12 +46,17 @@ class GenreViewSet(ListModelMixin,
                    viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
+
+    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
 
 
 class TitleViewSet(ModelViewSet):
+    queryset = Title.objects.all()
+    serializer_class = TitleSerializer
+    permission_classes = (IsAdminOrReadOnly,)
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
     )
@@ -68,7 +76,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrModeratorOrUserOrReadOnly]
 
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
@@ -88,7 +96,7 @@ class CommentViewSet(viewsets.ModelViewSet):
     создание/обновление/частичное обновление/удаление комментария по id.
     """
     serializer_class = CommentSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAdminOrModeratorOrUserOrReadOnly]
     pagination_class = PageNumberPagination
 
     def get_review(self):
@@ -148,7 +156,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email']
-    permission_classes = [IsAuthenticatedOrReadOnly]
+    permission_classes = (IsAdmin, )
 
     @action(detail=True)
     def me(self):
