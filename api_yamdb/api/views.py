@@ -1,45 +1,64 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
-from reviews.models import Category, Genre, Title, Review, Comment, Title
-
+from rest_framework.mixins import (
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+)
+from reviews.models import Category, Genre, Title, Review, Comment
 from .serializers import (
-  CategorySerializer, GenreSerializer, TitleSerializer,
+  CategorySerializer, GenreSerializer, TitlePostSerializer, TitleGetSerializer,
   ReviewSerializer, CommentSerializer, UserSerializer,
-  TokenSerializer, RegisterDataSerializer)
-
+  TokenSerializer, RegisterDataSerializer
+  )
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
+
+
+from django.db.models import Avg
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
 
 
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(ListModelMixin,
+                      CreateModelMixin,
+                      DestroyModelMixin,
+                      viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
-    
+    lookup_field = 'slug'
 
-class GenreViewSet(ModelViewSet):
+
+class GenreViewSet(ListModelMixin,
+                   CreateModelMixin,
+                   DestroyModelMixin,
+                   viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    filter_backends = [filters.SearchFilter]
+    queryset = Title.objects.all().annotate(
+        rating=Avg('reviews__score')
+    )
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('category__slug', 'genre__slug', 'name', 'year',)
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH',):
+            return TitlePostSerializer
+        return TitleGetSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
@@ -54,7 +73,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title
-        
+
     def get_queryset(self):
         return self.get_title().reviews.all()
 
