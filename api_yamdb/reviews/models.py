@@ -42,8 +42,8 @@ class Title(models.Model):
     )
     category = models.ForeignKey(
         Category,
-        to_field='slug',
-        on_delete=models.PROTECT,
+        null=True,
+        on_delete=models.SET_NULL,
         related_name='titles',
         verbose_name='Категория'
     )
