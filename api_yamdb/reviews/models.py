@@ -1,6 +1,10 @@
+# from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from users.models import User
 from django.db import models
+
+
+# User = get_user_model()
 
 
 class Category(models.Model):
@@ -56,29 +60,27 @@ class Review(models.Model):
         verbose_name='Название'
     )
     text = models.TextField(
+        max_length=200,
         verbose_name='Отзыв',
         help_text='Введите текст отзыва',
-        blank=False,
-        null=False,
     )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
         related_name='reviews',
-        blank=True,
-        null=True,
         verbose_name='Автор'
     )
-    score = models.SmallIntegerField(verbose_name='Оценка',
-                                     validators=(
-                                         MinValueValidator(1),
-                                         MaxValueValidator(10)
-                                     ),
-                                     blank=False,
-                                     null=False,
-                                     error_messages={
-                                         'validators': 'Оценка от 1 до 10'}
-                                     )
+    score = models.SmallIntegerField(
+        verbose_name='Оценка',
+        blank=False,
+        null=False,
+        validators=(
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ),
+        error_messages={
+            'validators': 'Оценка от 1 до 10'}
+    )
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата публикации'
@@ -90,10 +92,10 @@ class Review(models.Model):
 
         constraints = [
             models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_review'
-            )
-        ]
+                fields=('title', 'author',),
+                name='unique review'
+            )]
+        ordering = ('pub_date',)
 
     def __str__(self):
         return self.title
@@ -103,7 +105,7 @@ class Comment(models.Model):
     review = models.ForeignKey(
         'Review',
         on_delete=models.CASCADE,
-        related_name='comment',
+        related_name='comments',
         verbose_name='Отзыв',
         help_text='Отзыв, к которому будет относиться этот комментарий'
     )

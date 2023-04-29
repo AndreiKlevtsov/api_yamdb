@@ -1,10 +1,11 @@
-from rest_framework import filters
+from rest_framework import filters, status
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from reviews.models import Category, Genre, Title, Review, Comment, Title
 
 from .serializers import (
-  CategorySerializer, GenreSerializer, TitleSerializer, 
-  ReviewSerializer, CommentSerializer, UserSerializer)
+    CategorySerializer, GenreSerializer, TitleSerializer,
+    ReviewSerializer, CommentSerializer, UserSerializer)
 
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
@@ -21,7 +22,7 @@ class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ('name',)
-    
+
 
 class GenreViewSet(ModelViewSet):
     queryset = Genre.objects.all()
@@ -44,12 +45,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     """
     serializer_class = ReviewSerializer
     pagination_class = PageNumberPagination
-    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    # permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title
-        
+
     def get_queryset(self):
         return self.get_title().reviews.all()
 
@@ -72,7 +74,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         return review
 
     def get_queryset(self):
-        return self.get_review().comment.all()
+        return self.get_review().comments.all()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user,
@@ -83,10 +85,11 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
+    # lookup_field = ['username']
     search_fields = ['username', 'email']
     permission_classes = [IsAuthenticatedOrReadOnly]
 
-    @action(detail=True)
     def me(self):
         pass
-        
+
+
