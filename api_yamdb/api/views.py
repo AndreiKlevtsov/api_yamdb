@@ -8,8 +8,9 @@ from rest_framework.mixins import (
 from reviews.models import Category, Genre, Title, Review, Comment, Title
 
 from .serializers import (
-  CategorySerializer, GenreSerializer, TitlePostSerializer, TitleGetSerializer,
-  ReviewSerializer, CommentSerializer, UserSerializer)
+    CategorySerializer, GenreSerializer, TitlePostSerializer,
+    TitleGetSerializer,
+    ReviewSerializer, CommentSerializer, UserSerializer)
 
 from django.shortcuts import get_object_or_404
 from django.db.models import Avg
@@ -31,7 +32,7 @@ class CategoryViewSet(ListModelMixin,
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
-    
+
 
 class GenreViewSet(ListModelMixin,
                    CreateModelMixin,
@@ -69,7 +70,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     def get_title(self):
         title = get_object_or_404(Title, pk=self.kwargs.get('title_id'))
         return title
-        
+
     def get_queryset(self):
         return self.get_title().reviews.all()
 
@@ -109,4 +110,3 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def me(self):
         pass
-        
