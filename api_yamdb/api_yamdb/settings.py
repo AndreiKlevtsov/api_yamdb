@@ -1,5 +1,6 @@
 from pathlib import Path
 from datetime import timedelta
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -60,6 +61,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'api_yamdb.wsgi.application'
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 # Database
 
 DATABASES = {

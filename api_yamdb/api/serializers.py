@@ -7,7 +7,6 @@ from rest_framework.validators import UniqueValidator
 from users.models import User
 
 
-
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
@@ -52,7 +51,8 @@ class TitleGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = (
-        'id', 'name', 'year', 'rating', 'description', 'genre', 'category',)
+            'id', 'name', 'year', 'rating', 'description', 'genre',
+            'category',)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -65,6 +65,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    # !!!!!!!!!!!!убрать тайтл из выдачи!!!!!!!!!!
     def validate_score(self, value):
         if 0 > value > 10:
             raise serializers.ValidationError('Оценка по 10-бальной шкале')
@@ -97,6 +98,7 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only=True
     )
 
+    # "review": убрать из выдачи
     class Meta:
         model = Comment
         fields = '__all__'
@@ -129,5 +131,14 @@ class RegisterDataSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.Serializer):
-    username = serializers.CharField()
-    confirmation_code = serializers.CharField()
+    username = serializers.CharField(
+        required=True)
+    confirmation_code = serializers.CharField(
+        required=True)
+
+    class Meta:
+        model = User
+        fields = (
+            'username',
+            'confirmation_code'
+        )
