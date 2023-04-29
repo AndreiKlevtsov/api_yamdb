@@ -5,11 +5,14 @@ from .validators import validate_username
 
 
 class User(AbstractUser):
-    ROLE_CHOISES = (
-        ('user', 'User'),
-        ('moderator', 'Moderator'),
-        ('admin', 'Admin')
-    )
+    ADMIN = 'admin'
+    MODERATOR = 'moderator'
+    USER = 'user'
+    ROLES = [
+        (ADMIN, 'Administrator'),
+        (MODERATOR, 'Moderator'),
+        (USER, 'User'),
+    ]
     username = models.CharField(
         verbose_name='Имя пользователя',
         max_length=150,
@@ -18,12 +21,10 @@ class User(AbstractUser):
         null=False,
         validators=(validate_username, )
     )
-    email = models.CharField(
+    email = models.EmailField(
         verbose_name='Электронная почта',
-        max_length=254,
         unique=True,
-        blank=False,
-        null=False,
+
     )
     first_name = models.CharField(
         verbose_name='Имя',
@@ -46,9 +47,13 @@ class User(AbstractUser):
         help_text='О себе',
     )
     role = models.CharField(
+        verbose_name='Роль',
         max_length=10,
-        choices=ROLE_CHOISES,
-        default='User',
+        choices=ROLES,
+        default=USER,
         blank=True,
         help_text='Права доступа пользователя'
     )
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']

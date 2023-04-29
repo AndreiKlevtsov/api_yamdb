@@ -1,17 +1,22 @@
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
 from reviews.models import Category, Genre, Title, Review, Comment, Title
 
 from .serializers import (
-  CategorySerializer, GenreSerializer, TitleSerializer, 
-  ReviewSerializer, CommentSerializer, UserSerializer)
+  CategorySerializer, GenreSerializer, TitleSerializer,
+  ReviewSerializer, CommentSerializer, UserSerializer,
+  TokenSerializer, RegisterDataSerializer)
 
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
-from rest_framework.decorators import action
+from rest_framework import viewsets, filters, status, permissions
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.filters import SearchFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import AccessToken
 
 from users.models import User
 
@@ -79,6 +84,46 @@ class CommentViewSet(viewsets.ModelViewSet):
                         review=self.get_review())
 
 
+@api_view(['POST'])
+@permission_classes([permissions.AllowAny])
+def register(request):
+    serializer = RegisterDataSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data["username"]
+    )
+    confirmation_code = default_token_generator.make_token(user)
+    send_mail(
+        subject="Регистрация YAMDB",
+        message=f"Ваш код подтверждения: {confirmation_code}",
+        from_email=None,
+        recipient_list=[user.email],
+    )
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@api_view(["POST"])
+@permission_classes([permissions.AllowAny])
+def get_jwt_token(request):
+    serializer = TokenSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = get_object_or_404(
+        User,
+        username=serializer.validated_data["username"]
+    )
+
+    if default_token_generator.check_token(
+        user, serializer.validated_data["confirmation_code"]
+    ):
+        token = AccessToken.for_user(user)
+        return Response({"token": str(token)}, status=status.HTTP_200_OK)
+
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -89,4 +134,3 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=True)
     def me(self):
         pass
-        

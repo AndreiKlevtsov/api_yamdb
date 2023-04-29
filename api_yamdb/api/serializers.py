@@ -2,8 +2,10 @@ from rest_framework import serializers
 from datetime import date
 
 from reviews.models import Category, Genre, Title, Review, Comment
-from rest_framework.relations import SlugRelatedField 
+from rest_framework.relations import SlugRelatedField
+from rest_framework.validators import UniqueValidator
 from users.models import User
+
 
 class CategorySerializer(serializers.ModelSerializer):
 
@@ -31,8 +33,6 @@ class TitleSerializer(serializers.ModelSerializer):
                 'Нельзя указывать год, который больше текущего.'
             )
         return value
-
-
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -70,3 +70,25 @@ class UserSerializer(serializers.ModelSerializer):
             'username', 'email', 'first_name',
             'last_name', 'bio', 'role'
         )
+
+
+class RegisterDataSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+    email = serializers.EmailField(
+        validators=[
+            UniqueValidator(queryset=User.objects.all())
+        ]
+    )
+
+    class Meta:
+        fields = ("username", "email")
+        model = User
+
+
+class TokenSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    confirmation_code = serializers.CharField()
