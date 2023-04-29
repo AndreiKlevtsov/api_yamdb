@@ -1,12 +1,18 @@
 from rest_framework import filters
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.mixins import (
+    ListModelMixin,
+    CreateModelMixin,
+    DestroyModelMixin,
+)
 from reviews.models import Category, Genre, Title, Review, Comment, Title
 
 from .serializers import (
-  CategorySerializer, GenreSerializer, TitleSerializer, 
+  CategorySerializer, GenreSerializer, TitlePostSerializer, TitleGetSerializer,
   ReviewSerializer, CommentSerializer, UserSerializer)
 
 from django.shortcuts import get_object_or_404
+from django.db.models import Avg
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -16,25 +22,39 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from users.models import User
 
 
-class CategoryViewSet(ModelViewSet):
+class CategoryViewSet(ListModelMixin,
+                      CreateModelMixin,
+                      DestroyModelMixin,
+                      viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
     
 
-class GenreViewSet(ModelViewSet):
+class GenreViewSet(ListModelMixin,
+                   CreateModelMixin,
+                   DestroyModelMixin,
+                   viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleSerializer
-    filter_backends = [filters.SearchFilter]
+    queryset = Title.objects.all().annotate(
+        rating=Avg('reviews__score')
+    )
+    filter_backends = (filters.SearchFilter,)
     search_fields = ('category__slug', 'genre__slug', 'name', 'year',)
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PATCH',):
+            return TitlePostSerializer
+        return TitleGetSerializer
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
