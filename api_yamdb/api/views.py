@@ -9,15 +9,15 @@ from rest_framework.mixins import (
 from reviews.models import Category, Genre, Title, Review, Comment
 from .serializers import (
     CategorySerializer, GenreSerializer, TitlePostSerializer,
-    TitleGetSerializer, ReviewSerializer, CommentSerializer, 
+    TitleGetSerializer, ReviewSerializer, CommentSerializer,
     UserSerializer, TokenSerializer, RegisterDataSerializer
-  )
-from .permissions import (IsAdmin, IsAdminOrReadOnly,
-                          IsAdminOrModeratorOrUserOrReadOnly)
+)
+from .permissions import (
+    IsAdmin, IsAdminOrReadOnly,
+    IsAdminOrModeratorOrUserOrReadOnly)
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, filters, status, permissions
 from rest_framework.decorators import action, api_view, permission_classes
-
 
 from django.db.models import Avg
 from rest_framework.filters import SearchFilter
@@ -34,7 +34,7 @@ class CategoryViewSet(ListModelMixin,
                       viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly, )
+    permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('name',)
     filter_backends = (filters.SearchFilter,)
     lookup_field = 'slug'
@@ -46,7 +46,6 @@ class GenreViewSet(ListModelMixin,
                    viewsets.GenericViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-
     permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
@@ -55,7 +54,6 @@ class GenreViewSet(ListModelMixin,
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
@@ -143,7 +141,7 @@ def get_jwt_token(request):
     )
 
     if default_token_generator.check_token(
-        user, serializer.validated_data["confirmation_code"]
+            user, serializer.validated_data["confirmation_code"]
     ):
         token = AccessToken.for_user(user)
         return Response({"token": str(token)}, status=status.HTTP_200_OK)
@@ -156,8 +154,8 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email']
-    permission_classes = (IsAdmin, )
+    permission_classes = (IsAdmin,)
 
-    @action(detail=True)
     def me(self):
         pass
+
