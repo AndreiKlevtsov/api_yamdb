@@ -179,9 +179,9 @@ class UserViewSet(viewsets.ModelViewSet):
     Получение списка всех польваотелей, пользователя по id,
     создание/частичное обновление/удаление объекта пользователя по id.
     """
-    lookup_field = 'username'
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = "username"
     http_method_names = ('get', 'post', 'patch', 'delete',)
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email']

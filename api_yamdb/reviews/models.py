@@ -5,20 +5,32 @@ from users.models import User
 
 
 class Category(models.Model):
-    name = models.CharField(unique=True, max_length=256,
-                            verbose_name='Название')
-    slug = models.SlugField(unique=True, max_length=50,
-                            verbose_name='Тип категории')
+    name = models.CharField(
+        unique=True,
+        max_length=256,
+        verbose_name='Название'
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        verbose_name='Тип категории'
+    )
 
     def __str__(self):
         return self.name
 
 
 class Genre(models.Model):
-    name = models.CharField(unique=True, max_length=256,
-                            verbose_name='Жанр')
-    slug = models.SlugField(unique=True, max_length=50,
-                            verbose_name='slug')
+    name = models.CharField(
+        unique=True,
+        max_length=256,
+        verbose_name='Жанр'
+    )
+    slug = models.SlugField(
+        unique=True,
+        max_length=50,
+        verbose_name='slug'
+    )
 
     def __str__(self):
         return self.name
@@ -70,16 +82,18 @@ class Review(models.Model):
         null=True,
         verbose_name='Автор'
     )
-    score = models.SmallIntegerField(verbose_name='Оценка',
-                                     validators=(
-                                         MinValueValidator(1),
-                                         MaxValueValidator(10)
-                                     ),
-                                     blank=False,
-                                     null=False,
-                                     error_messages={
-                                         'validators': 'Оценка от 1 до 10'}
-                                     )
+    score = models.SmallIntegerField(
+        verbose_name='Оценка',
+        validators=(
+            MinValueValidator(1),
+            MaxValueValidator(10)
+        ),
+        blank=False,
+        null=False,
+        error_messages={
+            'validators': 'Оценка от 1 до 10'
+            }
+        )
     pub_date = models.DateTimeField(
         auto_now_add=True,
         verbose_name='Дата публикации'
@@ -94,9 +108,6 @@ class Review(models.Model):
                 name='unique review'
             )]
         ordering = ('pub_date',)
-
-    # def __str__(self):
-    #     return self.title
 
 
 class Comment(models.Model):
