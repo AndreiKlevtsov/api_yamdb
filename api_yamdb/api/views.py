@@ -155,9 +155,9 @@ def get_jwt_token(request):
 
 
 class UserViewSet(viewsets.ModelViewSet):
-    lookup_field = "username"
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = "username"
     http_method_names = ('get', 'post', 'patch', 'delete',)
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email']
