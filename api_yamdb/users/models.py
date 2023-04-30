@@ -29,16 +29,10 @@ class User(AbstractUser):
     first_name = models.CharField(
         verbose_name='Имя',
         max_length=155,
-        unique=True,
-        blank=False,
-        null=False,
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
         max_length=155,
-        unique=True,
-        blank=False,
-        null=False,
     )
     bio = models.TextField(
         verbose_name='О себе',

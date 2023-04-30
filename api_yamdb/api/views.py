@@ -34,7 +34,7 @@ class CategoryViewSet(ListModelMixin,
                       viewsets.GenericViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly, )
+#    permission_classes = (IsAdminOrReadOnly, )
     search_fields = ('name',)
     filter_backends = (filters.SearchFilter,)
     lookup_field = 'slug'
@@ -47,7 +47,7 @@ class GenreViewSet(ListModelMixin,
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
 
-    permission_classes = (IsAdminOrReadOnly,)
+#    permission_classes = (IsAdminOrReadOnly,)
     filter_backends = (filters.SearchFilter,)
     search_fields = ('name',)
     lookup_field = 'slug'
@@ -55,7 +55,6 @@ class GenreViewSet(ListModelMixin,
 
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
-    serializer_class = TitleSerializer
     permission_classes = (IsAdminOrReadOnly,)
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
@@ -156,7 +155,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
     search_fields = ['username', 'email']
-    permission_classes = (IsAdmin, )
+#    permission_classes = (IsAdmin, )
 
     @action(detail=True)
     def me(self):
