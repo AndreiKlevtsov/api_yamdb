@@ -1,7 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import validate_username, regex_validator
+from .validators import validate_username, unicode_validator
 
 
 class User(AbstractUser):
@@ -20,7 +20,7 @@ class User(AbstractUser):
         unique=True,
         blank=False,
         null=False,
-        validators=(validate_username, regex_validator)
+        validators=(validate_username, unicode_validator)
 
     )
     email = models.EmailField(

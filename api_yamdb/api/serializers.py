@@ -1,14 +1,12 @@
-from django.contrib.auth.tokens import default_token_generator
+from datetime import date
+
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from django.shortcuts import get_object_or_404
-from rest_framework.response import Response
-from rest_framework import serializers, status
-from datetime import date
+from rest_framework import serializers
+from rest_framework.relations import SlugRelatedField
 
 from reviews.models import Category, Genre, Title, Review, Comment
-from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from users.models import User
 
 

@@ -5,6 +5,9 @@ from reviews.models import Title
 
 
 class TitleFilter(FilterSet):
+    """
+    Фильтр для модели Title
+    """
     genre = django_filters.CharFilter(field_name='genre__slug')
     category = django_filters.CharFilter(field_name='category__slug')
     year = django_filters.CharFilter(field_name='year')

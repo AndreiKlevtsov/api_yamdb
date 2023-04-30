@@ -3,6 +3,9 @@ from django.core.exceptions import ValidationError
 
 
 def validate_username(value):
+    """
+    Проверяет, что username пользователя != 'me'.
+    """
     if value == 'me':
         raise ValidationError(
             ('Имя пользователя не может быть <me>.'),
@@ -11,10 +14,7 @@ def validate_username(value):
 
 
 class MyValidator(UnicodeUsernameValidator):
-    # regex = r'^[\w.@+-]+\+z'
-    #       r'^[\w.@+\- ]+$'
     pass
 
 
-
-regex_validator = MyValidator()
+unicode_validator = MyValidator()
