@@ -1,13 +1,14 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from .validators import validate_username
+from .validators import validate_username, regex_validator
 
 
 class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
     USER = 'user'
+
     ROLES = [
         (ADMIN, 'Administrator'),
         (MODERATOR, 'Moderator'),
@@ -19,12 +20,12 @@ class User(AbstractUser):
         unique=True,
         blank=False,
         null=False,
-        validators=(validate_username,)
+        validators=(validate_username, regex_validator)
+
     )
     email = models.EmailField(
         verbose_name='Электронная почта',
         unique=True,
-
     )
     first_name = models.CharField(
         verbose_name='Имя',
@@ -68,15 +69,7 @@ class User(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
-        constraints = [
-            models.CheckConstraint(
-                check=~models.Q(username__iexact="me"),
-                name="username_is_not_me"
-            )
-        ]
-
     def __str__(self):
         return self.username
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+
