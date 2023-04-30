@@ -35,7 +35,10 @@ class TitlePostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = ('id', 'name', 'year', 'description', 'genre', 'category',)
+        fields = (
+            'id', 'name', 'year',
+            'description', 'genre', 'category',
+        )
 
     def validate_year(self, value):
         if value > date.today().year:
@@ -85,11 +88,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = (
-            "id",
-            "text",
-            "author",
-            "score",
-            "pub_date",
+            'id',
+            'text',
+            'author',
+            'score',
+            'pub_date',
         )
 
 
@@ -102,10 +105,10 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = (
-            "id",
-            "text",
-            "author",
-            "pub_date",
+            'id',
+            'text',
+            'author',
+            'pub_date',
         )
 
 
