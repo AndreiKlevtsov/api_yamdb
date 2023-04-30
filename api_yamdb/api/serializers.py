@@ -1,9 +1,14 @@
-from rest_framework import serializers
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
+from django.shortcuts import get_object_or_404
+from rest_framework.response import Response
+from rest_framework import serializers, status
 from datetime import date
 
 from reviews.models import Category, Genre, Title, Review, Comment
 from rest_framework.relations import SlugRelatedField
-from rest_framework.validators import UniqueValidator
+from rest_framework.validators import UniqueValidator, UniqueTogetherValidator
 from users.models import User
 
 
@@ -45,8 +50,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
 class TitleGetSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
-    rating = serializers.DecimalField(max_digits=3, decimal_places=2,
-                                      read_only=True)
+    rating = serializers.IntegerField()
 
     class Meta:
         model = Title
@@ -56,52 +60,55 @@ class TitleGetSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
     author = serializers.SlugRelatedField(
         slug_field='username',
-        read_only=True
+        read_only=True,
+        many=False,
     )
 
-    # !!!!!!!!!!!!убрать тайтл из выдачи!!!!!!!!!!
+    def validate(self, data):
+        request = self.context['request']
+        author = request.user
+        title_id = self.context.get('view').kwargs.get('title_id')
+        title = get_object_or_404(Title, pk=title_id)
+        if (
+                request.method == 'POST'
+                and Review.objects.filter(title=title,
+                                          author=author).exists()
+        ):
+            raise ValidationError('Такой отзыв уже создан')
+        return data
+
     def validate_score(self, value):
-        if 0 > value > 10:
+        if 1 >= value >= 10:
             raise serializers.ValidationError('Оценка по 10-бальной шкале')
         return value
 
-    # def validate(self, data):
-    #     request = self.context['request']
-    #     author = request.user
-    #     title_id = self.context.get('view').kwargs.get('title_id')
-    #     title = get_object_or_404(Title, pk=title_id)
-    #     if (
-    #             request.method == 'POST'
-    #             and Review.objects.filter(title=title, author=author).exists()
-    #     ):
-    #         raise ValidationError('Такой отзыв уже создан')
-    #     return data
-
     class Meta:
         model = Review
-        fields = '__all__'
+        fields = (
+            "id",
+            "text",
+            "author",
+            "score",
+            "pub_date",
+        )
 
 
 class CommentSerializer(serializers.ModelSerializer):
-    review = SlugRelatedField(
-        slug_field='text',
-        read_only=True
-    )
     author = SlugRelatedField(
         slug_field='username',
         read_only=True
     )
 
-    # "review": убрать из выдачи
     class Meta:
         model = Comment
-        fields = '__all__'
+        fields = (
+            "id",
+            "text",
+            "author",
+            "pub_date",
+        )
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -115,27 +122,28 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UserEditSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ("username", "email", "first_name",
-                  "last_name", "bio", "role")
+        fields = (
+            'username', 'email', 'first_name',
+            'last_name', 'bio', 'role'
+        )
         model = User
         read_only_fields = ('role',)
 
 
-class RegisterDataSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.Serializer):
     username = serializers.CharField(
+        max_length=150,
         validators=[
-            UniqueValidator(queryset=User.objects.all())
-        ]
-    )
-    email = serializers.EmailField(
-        validators=[
-            UniqueValidator(queryset=User.objects.all())
+            RegexValidator(
+                regex=r'^[\w.@+-]',
+                message='usermame не соответствует формату'
+            )
         ]
     )
 
-    class Meta:
-        fields = ("username", "email")
-        model = User
+    email = serializers.EmailField(
+        max_length=254,
+    )
 
 
 class TokenSerializer(serializers.Serializer):
