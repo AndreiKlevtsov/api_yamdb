@@ -1,4 +1,5 @@
 from django.contrib.auth.tokens import default_token_generator
+from django.db import IntegrityError
 from django.core.mail import send_mail
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.mixins import (
@@ -10,7 +11,7 @@ from reviews.models import Category, Genre, Title, Review, Comment
 from .serializers import (
     CategorySerializer, GenreSerializer, TitlePostSerializer,
     TitleGetSerializer, ReviewSerializer, CommentSerializer,
-    UserSerializer, TokenSerializer, RegisterDataSerializer,
+    UserSerializer, TokenSerializer, RegisterUserSerializer,
     UserEditSerializer
 )
 from .permissions import (
@@ -54,12 +55,11 @@ class GenreViewSet(ListModelMixin,
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
-    permission_classes = (IsAdminOrReadOnly,)
     queryset = Title.objects.all().annotate(
         rating=Avg('reviews__score')
     )
     filter_backends = (filters.SearchFilter,)
+    permission_classes = (IsAdminOrReadOnly,)
     search_fields = ('category__slug', 'genre__slug', 'name', 'year',)
 
     def get_serializer_class(self):
@@ -113,13 +113,15 @@ class CommentViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 @permission_classes([permissions.AllowAny])
 def register(request):
-    serializer = RegisterDataSerializer(data=request.data)
+    serializer = RegisterUserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    serializer.save()
-    user = get_object_or_404(
-        User,
-        username=serializer.validated_data["username"]
-    )
+    try:
+        user, _ = User.objects.get_or_create(
+            username=serializer.validated_data.get("username"),
+            email=serializer.validated_data.get("email")
+        )
+    except IntegrityError:
+        return Response('Занято', status=status.HTTP_400_BAD_REQUEST)
     confirmation_code = default_token_generator.make_token(user)
     send_mail(
         subject="Регистрация YAMDB",

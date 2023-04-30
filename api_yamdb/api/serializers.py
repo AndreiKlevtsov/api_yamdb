@@ -4,6 +4,7 @@ from datetime import date
 from reviews.models import Category, Genre, Title, Review, Comment
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueValidator
+from django.core.validators import RegexValidator
 from users.models import User
 
 
@@ -105,6 +106,9 @@ class CommentSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(max_length=254)
+    username = serializers.CharField(max_length=150)
+
     class Meta:
         model = User
         fields = (
@@ -121,21 +125,20 @@ class UserEditSerializer(serializers.ModelSerializer):
         read_only_fields = ('role',)
 
 
-class RegisterDataSerializer(serializers.ModelSerializer):
+class RegisterUserSerializer(serializers.Serializer):
     username = serializers.CharField(
+        max_length=150,
         validators=[
-            UniqueValidator(queryset=User.objects.all())
-        ]
-    )
-    email = serializers.EmailField(
-        validators=[
-            UniqueValidator(queryset=User.objects.all())
+            RegexValidator(
+                regex=r'^[\w.@+-]',
+                message='usermame не соответствует формату'
+            )
         ]
     )
 
-    class Meta:
-        fields = ("username", "email")
-        model = User
+    email = serializers.EmailField(
+        max_length=254,
+    )
 
 
 class TokenSerializer(serializers.Serializer):
