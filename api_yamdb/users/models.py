@@ -28,12 +28,12 @@ class User(AbstractUser):
     )
     first_name = models.CharField(
         verbose_name='Имя',
-        max_length=155,
+        max_length=150,
         blank=True,
     )
     last_name = models.CharField(
         verbose_name='Фамилия',
-        max_length=155,
+        max_length=150,
         blank=True,
     )
     bio = models.TextField(
@@ -68,10 +68,15 @@ class User(AbstractUser):
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
+        constraints = [
+            models.CheckConstraint(
+                check=~models.Q(username__iexact="me"),
+                name="username_is_not_me"
+            )
+        ]
+
     def __str__(self):
         return self.username
 
-
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
-
