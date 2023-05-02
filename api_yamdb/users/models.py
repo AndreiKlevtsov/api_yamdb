@@ -1,26 +1,37 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.db import models
 
-from .validators import validate_username, unicode_validator
+from .validators import validate_username
+
+
+class CustomUserManager(UserManager):
+    """
+    При создании superuser присваивает роль Administrator.
+    """
+
+    def create_superuser(self, username, email=None, password=None,
+                         **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('role', User.ADMIN)
+        return self.create_user(username, email, password, **extra_fields)
 
 
 class User(AbstractUser):
-    ADMIN = 'admin'
-    MODERATOR = 'moderator'
     USER = 'user'
+    MODERATOR = 'moderator'
+    ADMIN = 'admin'
 
     ROLES = [
-        (ADMIN, 'Administrator'),
-        (MODERATOR, 'Moderator'),
         (USER, 'User'),
+        (MODERATOR, 'Moderator'),
+        (ADMIN, 'Administrator'),
     ]
     username = models.CharField(
         verbose_name='Имя пользователя',
         max_length=150,
         unique=True,
-        blank=False,
-        null=False,
-        validators=(validate_username, unicode_validator)
+        validators=(validate_username,)
 
     )
     email = models.EmailField(
@@ -51,18 +62,24 @@ class User(AbstractUser):
         blank=True,
         help_text='Права доступа пользователя'
     )
+    objects = CustomUserManager()
+
+    def create_super(self, request):
+        if request.user.is_admin:
+            self.role = self.ADMIN
 
     @property
     def is_user(self):
         return self.role == self.USER
 
     @property
-    def is_admin(self):
-        return self.role == self.ADMIN
-
-    @property
     def is_moderator(self):
         return self.role == self.MODERATOR
+
+    @property
+    def is_admin(self):
+        return (self.role == self.ADMIN
+                or self.is_superuser)
 
     class Meta:
         ordering = ('id',)

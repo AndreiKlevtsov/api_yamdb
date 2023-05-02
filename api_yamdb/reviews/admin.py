@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from reviews.models import Review, Comment, Title
+from reviews.models import Category, Comment, Review, Title, Genre
 
 
 @admin.register(Review)
@@ -31,11 +31,33 @@ class CommentAdmin(admin.ModelAdmin):
 
 
 @admin.register(Title)
-class TitletAdmin(admin.ModelAdmin):
+class TitleAdmin(admin.ModelAdmin):
     list_display = (
         'name',
         'year',
         'category',
+    )
+    search_fields = ('name',)
+    list_filter = ('name',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Genre)
+class GenreAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'slug',
+    )
+    search_fields = ('name',)
+    list_filter = ('name',)
+    empty_value_display = '-пусто-'
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = (
+        'name',
+        'slug',
     )
     search_fields = ('name',)
     list_filter = ('name',)
