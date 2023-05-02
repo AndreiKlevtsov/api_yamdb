@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
 AUTH_USER_MODEL = 'users.User'
 
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -60,7 +61,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'api_yamdb.wsgi.application'
-
+FROM_EMAIL = 'support@yamdb.com'
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 EMAIL_FILE_PATH = os.path.join(BASE_DIR, 'sent_emails')
 # Database

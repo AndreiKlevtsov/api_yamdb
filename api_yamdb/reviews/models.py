@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
@@ -38,7 +40,12 @@ class Genre(models.Model):
 
 class Title(models.Model):
     name = models.CharField('Название', max_length=256)
-    year = models.IntegerField('Год')
+    year = models.SmallIntegerField(
+        'Год',
+        validators=[MaxValueValidator(date.today().year)],
+        error_messages={
+            'validators': 'Нельзя указывать год, который больше текущего.'
+        })
     description = models.TextField(
         'Описание',
         null=True,
@@ -71,8 +78,6 @@ class Review(models.Model):
     text = models.TextField(
         verbose_name='Отзыв',
         help_text='Введите текст отзыва',
-        blank=False,
-        null=False,
     )
     author = models.ForeignKey(
         User,
@@ -88,8 +93,6 @@ class Review(models.Model):
             MinValueValidator(1),
             MaxValueValidator(10)
         ),
-        blank=False,
-        null=False,
         error_messages={
             'validators': 'Оценка от 1 до 10'
         }
