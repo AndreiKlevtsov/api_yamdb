@@ -1,8 +1,7 @@
-from datetime import date
-
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
+from .validators import validate_year
 from users.models import User
 
 
@@ -42,10 +41,8 @@ class Title(models.Model):
     name = models.CharField('Название', max_length=256)
     year = models.SmallIntegerField(
         'Год',
-        validators=[MaxValueValidator(date.today().year)],
-        error_messages={
-            'validators': 'Нельзя указывать год, который больше текущего.'
-        })
+        validators=(validate_year,)
+    )
     description = models.TextField(
         'Описание',
         null=True,
