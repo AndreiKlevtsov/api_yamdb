@@ -64,10 +64,6 @@ class User(AbstractUser):
     )
     objects = CustomUserManager()
 
-    def create_super(self, request):
-        if request.user.is_admin:
-            self.role = self.ADMIN
-
     @property
     def is_user(self):
         return self.role == self.USER
