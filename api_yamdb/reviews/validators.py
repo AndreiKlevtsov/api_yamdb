@@ -1,13 +1,7 @@
-from datetime import date
+def is_palindrome(line: str) -> bool:
+    replacements = [(':', ''), (',', ''), (' ', ''), ('.', '')]
+    for char, replacement in replacements:
+        line = line.replace(char, replacement)
+    return line == line[::-1]
 
-from django.core.exceptions import ValidationError
-
-
-def validate_year(value):
-    """
-    Проверяет, что значение поля year не превышает текущий год.
-    """
-    if value > date.today().year:
-        raise ValidationError(
-            'Нельзя указывать год, который больше текущего.'
-        )
+print(is_palindrome('A man, a plan, a canal: Panama'))
